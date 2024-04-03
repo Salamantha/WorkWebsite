@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown Timer with Progress Bar</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .timer {
+    width: 300px;
+    text-align: center;
+  }
+
+  .progress-bar {
+    width: 100%;
+    background-color: #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .progress-bar-inner {
+    width: 0%;
+    height: 20px;
+    background-color: #52915b;
+    transition: width 1s linear;
+  }
+
+  .timer-text {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .arrival-time {
+    font-size: 18px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+
+  .small-timer {
+    font-size: 16px;
+    color: #666;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="timer">
+  <div class="progress-bar">
+    <div class="progress-bar-inner" id="progress-bar"></div>
+  </div>
+  <div class="timer-text" id="timer-text">00:00:00</div>  
+  <div id="small-timer" class="small-timer" style="display: none;"></div>
+  <div class="arrival-time" id="arrival-time"></div>
+  <div>
+    <label for="start-time">Start Time:</label>
+    <input type="time" id="start-time" name="start-time" value="08:00">
+  </div>
+  <div>
+    <label for="hours">Duration (Hours):</label>
+    <input type="number" id="hours" name="hours" value="8" min="0">
+  </div>
+  <div>
+    <label for="minutes">Duration (Minutes):</label>
+    <input type="number" id="minutes" name="minutes" value="30" min="0">
+  </div>
+  <div>
+    <label for="pause">Pause:</label>
+    <input type="checkbox" id="pause" name="pause" onchange="togglePause()">
+  </div>
+  <button onclick="startTimer()">Start Timer</button>
+  <button onclick="resetTimer()">Reset Timer</button>
+</div>
+
+<script>
+  var countdown;
+
+  function startTimer() {
+    clearInterval(countdown); // Clear any existing timer
+    var display = document.getElementById("timer-text");
+    var arrivalTimeDisplay = document.getElementById("arrival-time");
+    var progressBar = document.getElementById('progress-bar');
+    var smallTimer = document.getElementById("small-timer");
+    var startTimeInput = document.getElementById("start-time").value.split(":");
+    var hoursInput = parseInt(document.getElementById("hours").value, 10);
+    var minutesInput = parseInt(document.getElementById("minutes").value, 10);
+    var startTime = new Date();
+    startTime.setHours(parseInt(startTimeInput[0]), parseInt(startTimeInput[1]), 0);
+    var endTime = new Date(startTime.getTime() + (hoursInput * 60 + minutesInput) * 60000);
+    var duration = (hoursInput * 60 + minutesInput) * 60;
+    var timer = duration, hours, minutes, seconds;
+    countdown = setInterval(function () {
+      var now = new Date();
+      if (now >= endTime) {
+        clearInterval(countdown);
+        display.textContent = "00:00:00";
+        progressBar.style.width = '0%';
+        arrivalTimeDisplay.textContent = "";
+        smallTimer.style.display = "none"; // Hide small timer when main timer ends
+      } else {
+        var elapsedTime = (now.getTime() - startTime.getTime()) / 1000;
+        var remainingTime = duration - elapsedTime;
+        hours = parseInt(remainingTime / 3600, 10);
+        minutes = parseInt((remainingTime % 3600) / 60, 10);
+        seconds = parseInt(remainingTime % 60, 10);
+        hours = hours < 10 ? "0" + hours : hours;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = hours + ":" + minutes + ":" + seconds;
+        arrivalTimeDisplay.textContent = "Arrival Time: " + formatTime(endTime);
+        progressBar.style.width = ((duration - remainingTime) / duration) * 100 + '%';
+        if (!document.getElementById("pause").checked) {
+          var smallerHours = hours;
+          var smallerMinutes = minutes - 30;
+          var smallerSeconds = seconds;
+
+          // Adjust hours and minutes if necessary
+          if (smallerMinutes < 0) {
+              smallerHours -= 1;
+              smallerMinutes += 60;
+          }
+
+          // Format smallerTime
+          smallerHours = smallerHours < 10 ? smallerHours : smallerHours;
+          smallerMinutes = smallerMinutes < 10 ? "0" + smallerMinutes : smallerMinutes;
+          smallerSeconds = smallerSeconds < 10 ? "0" + smallerSeconds : smallerSeconds;
+
+          // Set smallerTime
+          smallTimer.textContent = "Working: " + smallerHours + ":" + smallerMinutes + ":" + smallerSeconds;
+
+          smallTimer.style.display = "block"; // Show small timer
+        }
+      }
+    }, 1000);
+  }
+
+  function resetTimer() {
+    clearInterval(countdown); // Clear the timer
+    document.getElementById("timer-text").textContent = "00:00:00";
+    document.getElementById("arrival-time").textContent = "";
+    document.getElementById("progress-bar").style.width = '0%';
+    document.getElementById("small-timer").style.display = "none"; // Hide small timer when resetting
+  }
+
+  function formatTime(time) {
+    var hours = time.getHours();
+    var minutes = time.getMinutes();
+    hours = hours < 10 ? '0' + hours : hours;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    var strTime = hours + ':' + minutes;
+    return strTime;
+  }
+
+  function togglePause() {
+    var smallTimer = document.getElementById("small-timer");
+    if (document.getElementById("pause").checked) {
+      smallTimer.style.display = "none"; // Hide small timer when pause is checked
+    } else {
+      smallTimer.style.display = "block"; // Show small timer when pause is unchecked
+    }
+  }
+</script>
+</body>
+</html>
